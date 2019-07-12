@@ -1,6 +1,7 @@
 package com.yilong.newwidget;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -79,7 +80,7 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
 
     private void init(Context context) {
         mContext = context;
-        inflate(context, R.layout.buttom_widget_bar, this);
+        inflate(context, R.layout.view_custom_widget, this);
 
         mTouchSlop = ViewConfigurationCompat.getScaledPagingTouchSlop(ViewConfiguration.get(context));
 
@@ -92,6 +93,13 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
         user = findViewById(R.id.user);
         root = findViewById(R.id.root);
         tip = findViewById(R.id.tip);
+
+        findViewById(R.id.edit).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mContext.startActivity(new Intent(mContext, EditWidgetActivity.class));
+            }
+        });
 
         ViewTreeObserver tipObserver = tip.getViewTreeObserver();
         tipObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
