@@ -160,19 +160,18 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
 
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        int offsetY = y - mLastY;
-                        //追踪
-                        if (Math.abs(offsetY) > mTouchSlop) {
+                        int dy = y - mLastY;
+                        if (Math.abs(dy) > mTouchSlop) {
                             mDragging = true;
                         }
                         if (mDragging) {
-                            CustomWidgetView.this.scrollBy(0, -offsetY);
-                            if (offsetY < 0) {
+                            CustomWidgetView.this.scrollBy(0, -dy);
+                            if (dy < 0) {
                                 isMoveUp = true;
                             } else {
                                 isMoveUp = false;
                             }
-                            Log.i("zzzzzzzz", "move   offsetY = " + offsetY);
+                            Log.i("zzzzzzzz", "move   dy = " + dy);
                         }
                         break;
                     case MotionEvent.ACTION_CANCEL:

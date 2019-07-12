@@ -50,7 +50,8 @@
     </RelativeLayout>
 
 
-    <ScrollView
+    <com.yilong.newwidget.view.DragGridView.DragScrollView
+        android:id="@+id/dragScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1">
@@ -58,33 +59,40 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:descendantFocusability="blocksDescendants"
             android:orientation="vertical">
 
-            <com.yilong.newwidget.DragGridview
+            <com.yilong.newwidget.view.DragGridView.DragGridView
                 android:id="@+id/topGridview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="#990000ff"
+                android:listSelector="@android:color/transparent"
+                android:minHeight="300dp"
                 android:numColumns="3" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="37dp"
+                android:layout_marginBottom="30dp"
                 android:layout_marginLeft="18dp"
-                android:layout_marginTop="37dp"
+                android:layout_marginTop="30dp"
                 android:text="隐藏开关"
-                android:textColor="#c3c4c4" />
+                android:textColor="#c3c4c4"
+                android:textSize="16sp" />
 
-            <com.yilong.newwidget.DragGridview
+            <com.yilong.newwidget.view.DragGridView.DragGridView
                 android:id="@+id/bottomGridview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:background="#9900ff00"
+                android:listSelector="@android:color/transparent"
                 android:numColumns="3" />
 
 
         </LinearLayout>
 
-    </ScrollView>
+    </com.yilong.newwidget.view.DragGridView.DragScrollView>
 
 
 </LinearLayout>
