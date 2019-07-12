@@ -1,7 +1,6 @@
 package com.yilong.newwidget;
 
 import android.content.Context;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewConfigurationCompat;
@@ -40,12 +39,10 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
     private Scroller mScroller;
     private View middleAndBottom, topView, tip;
 
-    private ImageView arrowimg;
     /**
      * 是否为打开状态，默认第一次为收起状态
      */
     private boolean isOpenStatus;
-
     /**
      * 默认为初始化状态
      */
@@ -61,10 +58,7 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
     private int mLastY;
     private boolean isMoving = false;
 
-    private View root;
-
-    Handler handler = new Handler() {
-    };
+    private View root, upArrow, arrowDownRoot;
 
     public CustomWidgetView(@NonNull Context context) {
         super(context);
@@ -80,26 +74,29 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
         mContext = context;
         inflate(context, R.layout.buttom_widget_bar, this);
         root = findViewById(R.id.root);
+        upArrow = findViewById(R.id.upArrow);
         mTouchSlop = ViewConfigurationCompat.getScaledPagingTouchSlop(ViewConfiguration.get(context));
-        arrowimg = findViewById(R.id.arrowimg);
         tip = findViewById(R.id.tip);
         middleAndBottom = findViewById(R.id.middleAndBottom);
         topView = findViewById(R.id.topView);
         mScroller = new Scroller(mContext);
 
-        findViewById(R.id.arrowRoot).setOnClickListener(new OnClickListener() {
+        arrowDownRoot = findViewById(R.id.arrowDownRoot);
+        arrowDownRoot.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (isOpenStatus) {
                     hindWidget();
                     isOpenStatus = false;
-                    arrowimg.setBackgroundResource(R.mipmap.arrow_up);
+                    arrowDownRoot.setVisibility(View.GONE);
                     tip.setVisibility(View.GONE);
+                    upArrow.setVisibility(View.VISIBLE);
                 } else {
                     showWidget();
                     isOpenStatus = true;
-                    arrowimg.setBackgroundResource(R.mipmap.arrow_down);
                     tip.setVisibility(View.VISIBLE);
+                    upArrow.setVisibility(View.GONE);
+                    arrowDownRoot.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -149,13 +146,15 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
                                 showWidget();
                                 isOpenStatus = true;
                                 tip.setVisibility(View.VISIBLE);
-                                arrowimg.setBackgroundResource(R.mipmap.arrow_down);
+                                upArrow.setVisibility(View.GONE);
+                                arrowDownRoot.setVisibility(View.VISIBLE);
                             } else {
                                 Log.i("zzzzzzzz", "向下滑   ");
                                 hindWidget();
                                 isOpenStatus = false;
                                 tip.setVisibility(View.GONE);
-                                arrowimg.setBackgroundResource(R.mipmap.arrow_up);
+                                upArrow.setVisibility(View.VISIBLE);
+                                arrowDownRoot.setVisibility(View.GONE);
                             }
                         }
                         isMoving = false;
