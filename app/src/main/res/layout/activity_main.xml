@@ -11,7 +11,7 @@
         android:scaleType="centerCrop"
         android:src="@mipmap/wallpaper_03" />
 
-    <com.yilong.newwidget.CustomWidgetView
+    <com.yilong.newwidget.view.DragGridView.CustomWidgetView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom" />

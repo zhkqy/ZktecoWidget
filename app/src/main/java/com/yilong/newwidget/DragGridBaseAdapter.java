@@ -1,4 +1,4 @@
-package com.yilong.newwidget.view.DragGridView;
+package com.yilong.newwidget;
 
 public interface DragGridBaseAdapter {
 	/**

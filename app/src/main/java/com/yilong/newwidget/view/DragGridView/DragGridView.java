@@ -23,6 +23,7 @@ import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorListenerAdapter;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
+import com.yilong.newwidget.DragGridBaseAdapter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -68,12 +69,6 @@ public class DragGridView extends GridView {
     private ImageView mDragImageView;
 
     /**
-     * 震动器
-     */
-    private Vibrator mVibrator;
-
-
-    /**
      * 按下的点到所在item的上边缘的距离
      */
     private int mPoint2ItemTop;
@@ -97,16 +92,6 @@ public class DragGridView extends GridView {
      * 状态栏的高度
      */
     private int mStatusHeight;
-
-    /**
-     * DragGridView自动向下滚动的边界值
-     */
-    private int mDownScrollBorder;
-
-    /**
-     * DragGridView自动向上滚动的边界值
-     */
-    private int mUpScrollBorder;
 
     /**
      * DragGridView自动滚动的速度
@@ -133,7 +118,6 @@ public class DragGridView extends GridView {
     public DragGridView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mTouchSlop = ViewConfigurationCompat.getScaledPagingTouchSlop(ViewConfiguration.get(context));
-        mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         mStatusHeight = getStatusHeight(context); //获取状态栏的高度
 
         if (!mNumColumnsSet) {
@@ -154,8 +138,8 @@ public class DragGridView extends GridView {
         @Override
         public void run() {
             if (dragScrollView != null) {
-                dragScrollView.createDragView(mDragBitmap, mDownX, mDownY);
-                getParent().requestDisallowInterceptTouchEvent(false);
+                dragScrollView.createDragView(mDragBitmap, dragInitlocation[0], dragInitlocation[1]);
+                DragGridView.this.getParent().requestDisallowInterceptTouchEvent(false);
             }
 
         }
@@ -242,6 +226,11 @@ public class DragGridView extends GridView {
         this.dragResponseMS = dragResponseMS;
     }
 
+
+    //长按控件初始化位置
+    int[] dragInitlocation = new int[2];
+
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
@@ -262,17 +251,14 @@ public class DragGridView extends GridView {
                 //根据position获取该item所对应的View
                 mStartDragItemView = getChildAt(mDragPosition - getFirstVisiblePosition());
 
+                mStartDragItemView.getLocationOnScreen(dragInitlocation);//获取在整个屏幕内的绝对坐标
+
                 //下面这几个距离大家可以参考我的博客上面的图来理解下
                 mPoint2ItemTop = mDownY - mStartDragItemView.getTop();
                 mPoint2ItemLeft = mDownX - mStartDragItemView.getLeft();
 
                 mOffset2Top = (int) (ev.getRawY() - mDownY);
                 mOffset2Left = (int) (ev.getRawX() - mDownX);
-
-                //获取DragGridView自动向上滚动的偏移量，小于这个值，DragGridView向下滚动
-                mDownScrollBorder = getHeight() / 5;
-                //获取DragGridView自动向下滚动的偏移量，大于这个值，DragGridView向上滚动
-                mUpScrollBorder = getHeight() * 4 / 5;
 
                 //开启mDragItemView绘图缓存
                 mStartDragItemView.setDrawingCacheEnabled(true);
@@ -294,7 +280,6 @@ public class DragGridView extends GridView {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 mHandler.removeCallbacks(mLongClickRunnable);
-                mHandler.removeCallbacks(mScrollRunnable);
                 break;
         }
         return super.dispatchTouchEvent(ev);
@@ -325,35 +310,6 @@ public class DragGridView extends GridView {
 
         return true;
     }
-
-    /**
-     * 当moveY的值大于向上滚动的边界值，触发GridView自动向上滚动
-     * 当moveY的值小于向下滚动的边界值，触发GridView自动向下滚动
-     * 否则不进行滚动
-     */
-    private Runnable mScrollRunnable = new Runnable() {
-
-        @Override
-        public void run() {
-            int scrollY;
-            if (getFirstVisiblePosition() == 0 || getLastVisiblePosition() == getCount() - 1) {
-                mHandler.removeCallbacks(mScrollRunnable);
-            }
-
-            if (moveY > mUpScrollBorder) {
-                scrollY = speed;
-                mHandler.postDelayed(mScrollRunnable, 25);
-            } else if (moveY < mDownScrollBorder) {
-                scrollY = -speed;
-                mHandler.postDelayed(mScrollRunnable, 25);
-            } else {
-                scrollY = 0;
-                mHandler.removeCallbacks(mScrollRunnable);
-            }
-            smoothScrollBy(scrollY, 10);
-        }
-    };
-
 
     /**
      * 交换item,并且控制item之间的显示与隐藏效果

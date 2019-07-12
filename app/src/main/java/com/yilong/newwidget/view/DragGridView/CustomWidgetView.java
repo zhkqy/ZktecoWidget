@@ -1,4 +1,4 @@
-package com.yilong.newwidget;
+package com.yilong.newwidget.view.DragGridView;
 
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +22,10 @@ import android.widget.ImageView;
 import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.yilong.newwidget.EditWidgetActivity;
+import com.yilong.newwidget.R;
+import com.yilong.newwidget.WidgetInfo;
 
 import java.util.ArrayList;
 

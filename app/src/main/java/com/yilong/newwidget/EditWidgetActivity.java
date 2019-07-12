@@ -9,7 +9,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.yilong.newwidget.view.DragGridView.DragGridBaseAdapter;
 import com.yilong.newwidget.view.DragGridView.DragGridView;
 import com.yilong.newwidget.view.DragGridView.DragScrollView;
 
@@ -48,6 +47,23 @@ public class EditWidgetActivity extends Activity {
             widgetInfo.selectedImage = selectedImageId[x];
             widgetInfos.add(widgetInfo);
         }
+
+        for (int x = 0; x < 6; x++) {
+            WidgetInfo widgetInfo = new WidgetInfo();
+            widgetInfo.name = title[x];
+            widgetInfo.unselectedImage = unselectedImageId[x];
+            widgetInfo.selectedImage = selectedImageId[x];
+            widgetInfos.add(widgetInfo);
+        }
+
+        for (int x = 0; x < 6; x++) {
+            WidgetInfo widgetInfo = new WidgetInfo();
+            widgetInfo.name = title[x];
+            widgetInfo.unselectedImage = unselectedImageId[x];
+            widgetInfo.selectedImage = selectedImageId[x];
+            widgetInfos.add(widgetInfo);
+        }
+
 
         for (int x = 0; x < 6; x++) {
             WidgetInfo widgetInfo = new WidgetInfo();

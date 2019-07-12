@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v4.view.ViewConfigurationCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,13 +28,10 @@ public class DragScrollView extends ScrollView {
      * 是否可以拖拽，默认不可以
      */
     private boolean isDrag = false;
-
-
     /**
-     * DragGridView的item长按响应的时间， 默认是1000毫秒，也可以自行设置
+     * DragGridView自动滚动的速度
      */
-    private long dragResponseMS = 1000;
-
+    private static final int speed = 20;
     /**
      * DragGridView自动向下滚动的边界值
      */
@@ -55,7 +53,7 @@ public class DragScrollView extends ScrollView {
     private WindowManager mWindowManager;
     private int touchMoveX, touchMoveY;
     ImageView mDragImageView;
-
+    private Handler mHandler = new Handler();
     private Context mContext;
 
     public DragScrollView(Context context) {
@@ -110,6 +108,23 @@ public class DragScrollView extends ScrollView {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                //获取DragGridView自动向上滚动的偏移量，小于这个值，DragGridView向下滚动
+                mDownScrollBorder = getHeight() / 5;
+                //获取DragGridView自动向下滚动的偏移量，大于这个值，DragGridView向上滚动
+                mUpScrollBorder = getHeight() * 4 / 5;
+                break;
+            case MotionEvent.ACTION_UP:
+                mHandler.removeCallbacks(mScrollRunnable);
+                break;
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
 
         if (isDrag && mDragImageView != null) {
@@ -129,6 +144,38 @@ public class DragScrollView extends ScrollView {
         return super.onTouchEvent(ev);
     }
 
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_UP:
+                hindDragView();
+                break;
+        }
+        return super.onInterceptTouchEvent(ev);
+    }
+
+    /**
+     * 当moveY的值大于向上滚动的边界值，触发GridView自动向上滚动
+     * 当moveY的值小于向下滚动的边界值，触发GridView自动向下滚动
+     * 否则不进行滚动
+     */
+    private Runnable mScrollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            int scrollY;
+            if (touchMoveY > mUpScrollBorder) {
+                scrollY = speed;
+                mHandler.postDelayed(mScrollRunnable, 800);
+            } else if (touchMoveY < mDownScrollBorder) {
+                scrollY = -speed;
+                mHandler.postDelayed(mScrollRunnable, 800);
+            } else {
+                scrollY = 0;
+                mHandler.removeCallbacks(mScrollRunnable);
+            }
+            smoothScrollBy(0, scrollY);
+        }
+    };
 
     /**
      * 拖动item，在里面实现了item镜像的位置更新，item的相互交换以及GridView的自行滚动
@@ -141,9 +188,9 @@ public class DragScrollView extends ScrollView {
         mWindowLayoutParams.y = moveY;
         mWindowManager.updateViewLayout(mDragImageView, mWindowLayoutParams); //更新镜像的位置
 //        onSwapItem(moveX, moveY);
-//
-//        //GridView自动滚动
-//        mHandler.post(mScrollRunnable);
+
+        //ScrollView自动滚动
+        mHandler.post(mScrollRunnable);
     }
 
 
