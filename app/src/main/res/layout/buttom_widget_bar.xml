@@ -15,7 +15,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="80dp"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="15dp"
             android:background="@drawable/widget_top_bg">
 
             <ImageView
@@ -40,18 +40,20 @@
             <LinearLayout
                 android:id="@+id/tip"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:layout_marginTop="20dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
                 android:layout_toLeftOf="@+id/menu"
                 android:layout_toRightOf="@+id/user"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:visibility="invisible">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
                     android:ellipsize="end"
                     android:singleLine="true"
                     android:text="请选择功能小部件"
@@ -78,22 +80,14 @@
 
         </RelativeLayout>
 
-        <FrameLayout
+        <ImageView
             android:id="@+id/arrowDownRoot"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_gravity="center_horizontal"
-            android:visibility="gone">
+            android:background="@mipmap/arrow_down"
+            android:visibility="invisible" />
 
-            <ImageView
-                android:id="@+id/arrowimg"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-
-                android:layout_gravity="center"
-                android:background="@mipmap/arrow_down" />
-
-        </FrameLayout>
 
     </FrameLayout>
 

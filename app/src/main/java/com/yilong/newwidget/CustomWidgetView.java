@@ -1,11 +1,13 @@
 package com.yilong.newwidget;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewConfigurationCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -18,6 +20,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Scroller;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -37,12 +40,12 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
     private int selectPosition = -1;
 
     private Scroller mScroller;
-    private View middleAndBottom, topView, tip;
+    private View middleAndBottom, topView, tip, user;
 
     /**
      * 是否为打开状态，默认第一次为收起状态
      */
-    private boolean isOpenStatus;
+    private boolean isOpenStatus = false;
     /**
      * 默认为初始化状态
      */
@@ -56,9 +59,13 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
     private boolean mDragging;
 
     private int mLastY;
-    private boolean isMoving = false;
+    private View root, upArrow, arrowDownRoot, menu;
 
-    private View root, upArrow, arrowDownRoot;
+    private Rect userRect = new Rect();
+    private Rect menuRect = new Rect();
+    private Rect tipRect = new Rect();
+
+    private int topDip = 15;
 
     public CustomWidgetView(@NonNull Context context) {
         super(context);
@@ -73,33 +80,55 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
     private void init(Context context) {
         mContext = context;
         inflate(context, R.layout.buttom_widget_bar, this);
-        root = findViewById(R.id.root);
-        upArrow = findViewById(R.id.upArrow);
+
         mTouchSlop = ViewConfigurationCompat.getScaledPagingTouchSlop(ViewConfiguration.get(context));
-        tip = findViewById(R.id.tip);
+
         middleAndBottom = findViewById(R.id.middleAndBottom);
+        arrowDownRoot = findViewById(R.id.arrowDownRoot);
+        upArrow = findViewById(R.id.upArrow);
         topView = findViewById(R.id.topView);
         mScroller = new Scroller(mContext);
+        menu = findViewById(R.id.menu);
+        user = findViewById(R.id.user);
+        root = findViewById(R.id.root);
+        tip = findViewById(R.id.tip);
 
-        arrowDownRoot = findViewById(R.id.arrowDownRoot);
-        arrowDownRoot.setOnClickListener(new OnClickListener() {
+        ViewTreeObserver tipObserver = tip.getViewTreeObserver();
+        tipObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public void onClick(View v) {
-                if (isOpenStatus) {
-                    hindWidget();
-                    isOpenStatus = false;
-                    arrowDownRoot.setVisibility(View.GONE);
-                    tip.setVisibility(View.GONE);
-                    upArrow.setVisibility(View.VISIBLE);
-                } else {
-                    showWidget();
-                    isOpenStatus = true;
-                    tip.setVisibility(View.VISIBLE);
-                    upArrow.setVisibility(View.GONE);
-                    arrowDownRoot.setVisibility(View.VISIBLE);
-                }
+            public void onGlobalLayout() {
+                tip.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                tipRect.left = (int) tip.getX();
+                tipRect.top = 0;
+                tipRect.right = tipRect.left + tip.getMeasuredWidth();
+                tipRect.bottom = tipRect.top + tip.getMeasuredHeight() + (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, topDip, mContext.getResources().getDisplayMetrics());
             }
         });
+
+        ViewTreeObserver menuObserver = menu.getViewTreeObserver();
+        menuObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                menu.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                menuRect.left = (int) menu.getX();
+                menuRect.top = (int) menu.getY() + (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, topDip, mContext.getResources().getDisplayMetrics());
+                menuRect.right = menuRect.left + menu.getMeasuredWidth();
+                menuRect.bottom = menuRect.top + menu.getMeasuredHeight();
+            }
+        });
+
+        ViewTreeObserver userObserver = user.getViewTreeObserver();
+        userObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                user.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                userRect.left = (int) user.getX();
+                userRect.top = (int) user.getY() + (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, topDip, mContext.getResources().getDisplayMetrics());
+                userRect.right = userRect.left + user.getMeasuredWidth();
+                userRect.bottom = userRect.top + user.getMeasuredHeight();
+            }
+        });
+
         ViewTreeObserver observer = middleAndBottom.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -117,8 +146,10 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
 
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        isMoving = false;
                         mLastY = y;
+
+                        Log.i("eeeeeee", "ACTION_DOWN");
+
                         break;
                     case MotionEvent.ACTION_MOVE:
                         int offsetY = y - mLastY;
@@ -127,7 +158,6 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
                             mDragging = true;
                         }
                         if (mDragging) {
-                            isMoving = true;
                             CustomWidgetView.this.scrollBy(0, -offsetY);
                             if (offsetY < 0) {
                                 isMoveUp = true;
@@ -139,31 +169,79 @@ public class CustomWidgetView extends FrameLayout implements AdapterView.OnItemC
                         break;
                     case MotionEvent.ACTION_CANCEL:
                     case MotionEvent.ACTION_UP:
-                        mDragging = false;
-                        if (isMoving) {
+                        if (mDragging) {
                             if (isMoveUp) {
                                 Log.i("zzzzzzzz", "向上滑  ");
                                 showWidget();
                                 isOpenStatus = true;
                                 tip.setVisibility(View.VISIBLE);
-                                upArrow.setVisibility(View.GONE);
+                                upArrow.setVisibility(View.INVISIBLE);
                                 arrowDownRoot.setVisibility(View.VISIBLE);
                             } else {
                                 Log.i("zzzzzzzz", "向下滑   ");
                                 hindWidget();
                                 isOpenStatus = false;
-                                tip.setVisibility(View.GONE);
+                                tip.setVisibility(View.INVISIBLE);
                                 upArrow.setVisibility(View.VISIBLE);
-                                arrowDownRoot.setVisibility(View.GONE);
+                                arrowDownRoot.setVisibility(View.INVISIBLE);
                             }
+                        } else {
+                            Log.i("eeeeeee", "ACTION_UP");
+                            checkTouchRange(event);
                         }
-                        isMoving = false;
+                        mDragging = false;
                         break;
                 }
 
                 return true;
             }
         });
+    }
+
+    /**
+     * 判断点击按钮区域 执行相应逻辑
+     *
+     * @param event
+     */
+
+    public void checkTouchRange(MotionEvent event) {
+        int x = (int) event.getX();
+        int y = (int) event.getY();
+
+        if (checkPointInRect(x, y, userRect)) {
+            Toast.makeText(mContext, "点击了用户按钮", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (checkPointInRect(x, y, menuRect)) {
+            Toast.makeText(mContext, "点击了菜单按钮", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (checkPointInRect(x, y, tipRect)) {
+            if (isOpenStatus) {
+                hindWidget();
+                isOpenStatus = false;
+                arrowDownRoot.setVisibility(View.GONE);
+                tip.setVisibility(View.GONE);
+                upArrow.setVisibility(View.VISIBLE);
+            } else {
+                showWidget();
+                isOpenStatus = true;
+                tip.setVisibility(View.VISIBLE);
+                upArrow.setVisibility(View.GONE);
+                arrowDownRoot.setVisibility(View.VISIBLE);
+            }
+            return;
+        }
+    }
+
+    public boolean checkPointInRect(int x, int y, Rect rect) {
+
+        Log.i("eeeeeee", "x = " + x + "   y = " + y + "   left = " + rect.left + "   right = " + rect.right + "    top = " + rect.top + "   botton=" + rect.bottom);
+
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+            return true;
+        }
+        return false;
     }
 
     public void showWidget() {
